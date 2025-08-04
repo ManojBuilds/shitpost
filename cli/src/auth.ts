@@ -40,5 +40,5 @@ async function pollForAuth(sessionId: string): Promise<any> {
         }
         await new Promise(resolve => setTimeout(resolve, 2500));
     }
-    throw new Error('Timeout waiting for authorization to complete.');
+    throw new Error('Authorization timed out. Please try running the command again.');
 }

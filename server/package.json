@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.0",
     "ai": "^5.0.1",
+    "axios": "^1.11.0",
     "express": "^5.1.0",
     "twitter-api-v2": "^1.24.0",
     "zod": "^3.25.76"

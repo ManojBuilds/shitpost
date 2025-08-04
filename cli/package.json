@@ -20,6 +20,7 @@
     "@google/genai": "^1.12.0",
     "ai": "^4.3.19",
     "axios": "^1.11.0",
+    "gradient-string": "^3.0.0",
     "open": "^10.2.0",
     "simple-git": "^3.28.0",
     "twitter-api-v2": "^1.24.0",

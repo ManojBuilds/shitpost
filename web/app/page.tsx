@@ -13,44 +13,55 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import MuxPlayer from "@mux/mux-player-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center min-h-screen py-16">
-      <div className="flex flex-col items-center px-4 sm:px-10 text-center ">
-        {/* Hero Section */}
-        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
-          <span className="text-blue-600">Build in Public </span><br />Without the Burnout
-        </h1>
-        <p className="mt-4 text-lg sm:text-2xl text-muted-foreground max-w-2xl">
-          Tweet consistently about what you&apos;re building without spending hours writing threads manually.
-        </p>
+    <div className="flex flex-col items-center min-h-screen py-16 w-full h-full">
 
-        {/* CTA Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
-          <Button
-            variant={'outline'}
-            onClick={async () => {
-              await navigator.clipboard.writeText('npx shitpost');
-              toast.info("Copied to clipboard");
-            }}
+        <div className="flex flex-col items-center px-4 sm:px-10 text-center w-full h-full ">
+          {/* Hero Section */}
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
+            <span className="text-blue-600">Build in Public </span><br />Without the Burnout
+          </h1>
+          <p className="mt-4 text-lg sm:text-2xl text-muted-foreground max-w-2xl">
+            Tweet consistently about what you&apos;re building without spending hours writing threads manually.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <Button
+              variant={'outline'}
+              onClick={async () => {
+                await navigator.clipboard.writeText('npx shitpost');
+                toast.info("Copied to clipboard");
+              }}
+            >
+              <Terminal className="mr-2 h-4 w-4" />
+              npx shitpost
+            </Button>
+            <Link
+              href="/dashboard"
+              className={cn(buttonVariants({ size: "lg" }))}
+            >
+              View Dashboard
+            </Link>
+          </div>
+
+        <div className="max-w-5xl mx-auto mt-12 w-full h-full">
+          <div
+            className="relative flex items-center h-fit -m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 shadow-2xl"
           >
-            <Terminal className="mr-2 h-4 w-4" />
-            npx shitpost
-          </Button>
-          <Link
-            href="/dashboard"
-            className={cn(buttonVariants({ size: "lg" }))}
-          >
-            View Dashboard
-          </Link>
+            <MuxPlayer
+              streamType="on-demand"
+              playbackId="lVD901dOj4Jeit58Vnx4jGSQUD5SkCEmue00NEFXT3o02A"
+              metadata={{
+                video_title: "Demo of I'm using shitpost",
+              }}
+              className="w-full h-full aspect-video"
+            />
+          </div>
         </div>
-        {/* <div
-          className="relative flex items-center h-fit -m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 shadow-2xl"
-        >
-          video
-
-        </div> */}
 
         {/* How It Works */}
         <section className="mt-24 w-full max-w-5xl">
@@ -123,8 +134,8 @@ export default function Home() {
           &copy; {new Date().getFullYear()} Shitpost. All rights reserved.
         </p>
       </footer>
-
     </div>
+
   );
 }
 

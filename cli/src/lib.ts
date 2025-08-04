@@ -162,9 +162,8 @@ export async function updateInDb(tweets: Tweets) {
         await Promise.all(tweetPromises);
 
         s.stop(`✅  ${color.green("Your tweets are safe and sound in the database.")}`);
-        p.note(`Visit https://shitpost.heysheet.in/dashboard to manage and schedule your tweets.`);
     } catch (err) {
-        p.log.error('An error occurred while updating the database.');
+        p.log.error('An error occurred while updating the database. Please check your internet connection and try again.');
         if (err instanceof Error) {
             p.log.error(err.message);
         }

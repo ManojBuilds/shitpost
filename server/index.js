@@ -4,6 +4,7 @@ import { z } from "zod";
 import { generateText, generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 import { TwitterApi } from "twitter-api-v2";
+import axios from "axios";
 
 dotenv.config();
 
@@ -14,7 +15,6 @@ app.use(express.json());
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
-let oauthRequestData = null;
 const sessions = {}
 
 
@@ -97,10 +97,7 @@ app.get("/auth/callback", async (req, res) => {
 
     console.log("✅ Logged in as Twitter user:", user.username);
 
-    const userCreationRes = await fetch(`${FRONTEND_URL}/api/createUser`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const userCreationData = await axios.post(`${FRONTEND_URL}/api/createUser`, {
         twitterId: user.id,
         name: user.name,
         username: user.username.toLowerCase(),
@@ -109,10 +106,9 @@ app.get("/auth/callback", async (req, res) => {
         accessToken,
         refreshToken,
         expiresAt
-      })
     });
 
-    const newUser = await userCreationRes.json();
+    const newUser =userCreationData.data;
     console.log("🆕 User created in frontend DB:", newUser.id);
 
     const payload = {
@@ -128,10 +124,10 @@ app.get("/auth/callback", async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(`
   <html>
-    <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+    <body>
       <h2>✅ Auth complete!</h2>
       <p>This window will close automatically.</p>
-      <script>setTimeout(() => window.close(), 1000);</script>
+      <script>setTimeout(() => window.close(), 200);</script>
     </body>
   </html>
 `);

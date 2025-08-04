@@ -5,6 +5,7 @@ import color from 'picocolors';
 import { generateDiffSummary, generateTweets, getGitDiff, updateInDb } from './lib';
 import { authorizeWithX } from './auth';
 import { LOGO } from './constants';
+import { cristal } from 'gradient-string';
 
 async function main() {
     try {
@@ -18,10 +19,10 @@ async function main() {
                 l: 'right',
             },
         });
+        const gradientLogo = cristal(LOGO);
+        p.intro(gradientLogo);
 
-        p.intro(LOGO)
-
-        p.log.message('✨  Built something cool? Let\'s turn it into a post.');
+        p.log.message("✨ Built something cool? I'll analyze your latest git changes and help you craft a social media post about your progress.");
         await authorizeWithX();
 
         const diff = await getGitDiff();
@@ -29,7 +30,6 @@ async function main() {
         const tweets = await generateTweets(diffSummary);
         await updateInDb(tweets);
 
-        // Outro
         p.outro(`
 🚀  Done! Open your dashboard: ${color.cyan(`https://shitpost.heysheet.in/dashboard`)}
 

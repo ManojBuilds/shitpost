@@ -15,7 +15,7 @@ type TokenData = {
 
 export function saveTokens(tokens: TokenData) {
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2));
-  console.log('tokens saved to .shitpost')
+  
 }
 
 export function getSavedTokens(): TokenData | null {
