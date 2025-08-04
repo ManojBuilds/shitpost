@@ -3,7 +3,6 @@ import simpleGit from 'simple-git';
 import { Tweets } from './types';
 import { getSavedTokens } from './authStore';
 import color from 'picocolors';
-import { config } from './config';
 import axios from 'axios';
 
 
@@ -39,7 +38,7 @@ export async function generateDiffSummary(gitDiff: string): Promise<string> {
     const s = p.spinner();
     s.start(`🤖  ${color.cyan("Asking our AI overlords to make sense of your code...")}`);
     try {
-        const res = await axios.post('http://localhost:5000/api/diffSummary', {
+        const res = await axios.post('https://shitpost-ujla.onrender.com/api/diffSummary', {
             gitDiff,
         }, {
             headers: {
@@ -64,7 +63,7 @@ export async function generateTweets(diffSummary: string) {
     s.start(`🐦  ${color.cyan("Turning your code into clout...")}`);
 
     try {
-        const res = await axios.post('http://localhost:5000/api/generateTweets', {
+        const res = await axios.post('https://shitpost-ujla.onrender.com/api/generateTweets', {
             diffSummary,
         }, {
             headers: {
@@ -148,7 +147,7 @@ export async function updateInDb(tweets: Tweets) {
         s.start(`🚀  ${color.cyan(`Saving ${tweetsToSave.length} tweet(s) to the cloud...`)}`);
 
         const tweetPromises = tweetsToSave.map((tweet) => {
-            return fetch(`${config.frontendUrl}/api/createTweet`, {
+            return fetch(`https://shitpost.heysheet.in/api/createTweet`, {
                 method: 'POST',
                 body: JSON.stringify({
                     username: tokenData?.username.toLowerCase(),
@@ -163,7 +162,7 @@ export async function updateInDb(tweets: Tweets) {
         await Promise.all(tweetPromises);
 
         s.stop(`✅  ${color.green("Your tweets are safe and sound in the database.")}`);
-        p.note(`Visit ${config.frontendUrl}/dashboard to manage and schedule your tweets.`);
+        p.note(`Visit https://shitpost.heysheet.in/dashboard to manage and schedule your tweets.`);
     } catch (err) {
         p.log.error('An error occurred while updating the database.');
         if (err instanceof Error) {

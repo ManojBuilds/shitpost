@@ -33,7 +33,7 @@ export async function authorizeWithX() {
                 const port = typeof address === 'object' && address?.port;
                 const callbackUrl = `http://localhost:${port}`;
 
-                const authUrl = `http://localhost:5000/auth/x?callback=${encodeURIComponent(callbackUrl)}`;
+                const authUrl = `https://shitpost-ujla.onrender.com/auth/x?callback=${encodeURIComponent(callbackUrl)}`;
                 await open(authUrl);
 
                 p.log.message('🌐 Opened browser for authorization...');

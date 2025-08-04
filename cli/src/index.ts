@@ -5,7 +5,6 @@ import color from 'picocolors';
 import { generateDiffSummary, generateTweets, getGitDiff, updateInDb } from './lib';
 import { authorizeWithX } from './auth';
 import { LOGO } from './constants';
-import { config } from './config';
 
 async function main() {
     try {
@@ -32,7 +31,7 @@ async function main() {
 
         // Outro
         p.outro(`
-🚀  Done! Open your dashboard: ${color.cyan(`https://${config.frontendUrl}/dashboard`)}
+🚀  Done! Open your dashboard: ${color.cyan(`https://shitpost.heysheet.in/dashboard`)}
 
 💬  Type ${color.bold('shitpost')} again tomorrow to stay consistent.
 `);

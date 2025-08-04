@@ -47,20 +47,28 @@ const client = new TwitterApi({
 });
 
 app.get("/auth/x", async (req, res) => {
-  const { callback } = req.query
+  const { callback } = req.query;
+  console.log("🔁 Starting OAuth flow...");
+  console.log("📥 Callback URL from CLI:", callback);
+
   const { url, codeVerifier, state } = client.generateOAuth2AuthLink(CALLBACK_URL, {
     scope: ["tweet.read", "tweet.write", "users.read", "offline.access", "users.email"]
   });
 
   oauthRequestData = { codeVerifier, state, callback };
+  console.log("🔐 Generated OAuth2 auth link with state:", state);
+  console.log("🌐 Redirecting user to Twitter OAuth:", url);
+
   res.redirect(url);
 });
 
 app.get("/auth/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
+    console.log("🔙 Received OAuth callback:", { code, state });
 
     if (!code || !state || !oauthRequestData || state !== oauthRequestData.state) {
+      console.error("❌ Invalid OAuth callback state or missing code.");
       return res.status(400).json({ error: "Invalid state or code" });
     }
 
@@ -76,10 +84,11 @@ app.get("/auth/callback", async (req, res) => {
     });
 
     const expiresAt = Date.now() + expiresIn * 1000;
-
     const { data: user } = await loggedClient.v2.me({
       "user.fields": ["confirmed_email", "profile_image_url"]
     });
+
+    console.log("✅ Logged in as Twitter user:", user.username);
 
     const userCreationRes = await fetch(`${FRONTEND_URL}/api/createUser`, {
       method: 'POST',
@@ -97,6 +106,8 @@ app.get("/auth/callback", async (req, res) => {
     });
 
     const newUser = await userCreationRes.json();
+    console.log("🆕 User created in frontend DB:", newUser.id);
+
     const payload = {
       accessToken,
       refreshToken,
@@ -106,6 +117,8 @@ app.get("/auth/callback", async (req, res) => {
       username: user.username.toLowerCase(),
       userId: newUser.id
     };
+
+    console.log("📤 Sending token data back to CLI callback:", oauthRequestData.callback);
     await fetch(oauthRequestData.callback, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -122,26 +135,34 @@ app.get("/auth/callback", async (req, res) => {
     </body>
   </html>
 `);
-
-
   } catch (err) {
-    console.error("OAuth error:", err);
+    console.error("❌ OAuth error:", err);
     res.status(500).json({ error: "Authentication failed" });
   }
 });
 
 app.post("/api/diffsummary", async (req, res) => {
   const { gitDiff } = req.body;
-  const { text } = await generateText({
-    model: google("models/gemini-1.5-flash-latest"),
-    prompt: `Summarize the following Git diff as if you were writing a changelog or commit description. Focus on what was changed and why.\n\n${gitDiff}`,
-    system: GIT_DIFF_SUMMARY_SYSTEM_PROMPT,
-  });
-  res.status(200).json({ text });
+  console.log("📄 Received Git diff for summarization");
+
+  try {
+    const { text } = await generateText({
+      model: google("models/gemini-1.5-flash-latest"),
+      prompt: `Summarize the following Git diff as if you were writing a changelog or commit description. Focus on what was changed and why.\n\n${gitDiff}`,
+      system: GIT_DIFF_SUMMARY_SYSTEM_PROMPT,
+    });
+
+    console.log("✅ Diff summary generated.");
+    res.status(200).json({ text });
+  } catch (err) {
+    console.error("❌ Failed to generate diff summary:", err);
+    res.status(500).json({ error: "Diff summary generation failed" });
+  }
 });
 
 app.post("/api/generateTweets", async (req, res) => {
   const { diffSummary } = req.body;
+  console.log("🐦 Generating tweets from diff summary...");
 
   const prompt = `You're a developer who builds in public and tweets daily about what you're working on.
 
@@ -152,14 +173,20 @@ Each tweet should stand alone and be inspired by the actual work done.
 Summary:
 ${diffSummary}`;
 
-  const { object } = await generateObject({
-    model: google("models/gemini-1.5-flash-latest"),
-    output: 'array',
-    schema: TweetSchema,
-    prompt,
-  });
+  try {
+    const { object } = await generateObject({
+      model: google("models/gemini-1.5-flash-latest"),
+      output: 'array',
+      schema: TweetSchema,
+      prompt,
+    });
 
-  res.json(object);
+    console.log("✅ Tweet ideas generated.");
+    res.json(object);
+  } catch (err) {
+    console.error("❌ Tweet generation failed:", err);
+    res.status(500).json({ error: "Tweet generation failed" });
+  }
 });
 
 app.listen(port, () => {
