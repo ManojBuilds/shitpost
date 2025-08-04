@@ -5,15 +5,26 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "node/index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "shitpost": "./dist/index.js"
+  },
   "scripts": {
     "dev": "npx tsc && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.22",
+    "@ai-sdk/mistral": "^2.0.0",
     "@clack/prompts": "^0.11.0",
+    "@google/genai": "^1.12.0",
+    "ai": "^4.3.19",
+    "dotenv": "^17.2.1",
+    "open": "^10.2.0",
     "simple-git": "^3.28.0",
-    "typescript": "^5.8.3"
+    "twitter-api-v2": "^1.24.0",
+    "typescript": "^5.8.3",
+    "zod": "^3.25.76"
   },
   "packageManager": "yarn@4.9.2+sha512.1fc009bc09d13cfd0e19efa44cbfc2b9cf6ca61482725eb35bbc5e257e093ebf4130db6dfe15d604ff4b79efd8e1e8e99b25fa7d0a6197c9f9826358d4d65c3c",
   "devDependencies": {
