@@ -8,7 +8,7 @@ import { TwitterApi } from "twitter-api-v2";
 dotenv.config();
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 app.use(express.json());
 
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL;
