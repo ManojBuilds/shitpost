@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
 import open from 'open';
-import http from 'http';
+import crypto from 'crypto';
 import { saveTokens, getSavedTokens } from './authStore';
 
 export async function authorizeWithX() {
@@ -8,62 +8,37 @@ export async function authorizeWithX() {
         const saved = getSavedTokens();
         if (saved) return;
 
-        const tokenData = await new Promise((resolve, reject) => {
-            const server = http.createServer(async (req, res) => {
-                let body = '';
-                req.on('data', chunk => (body += chunk));
-                req.on('end', () => {
-                    try {
-                        const data = JSON.parse(body);
-                        res.writeHead(200, { 'Content-Type': 'text/plain' });
-                        res.end('✅ Auth complete. You can close this window.');
-                        server.close();
-                        resolve(data);
-                    } catch (e) {
-                        res.writeHead(400, { 'Content-Type': 'text/plain' });
-                        res.end('❌ Failed to parse token data.');
-                        server.close();
-                        reject(e);
-                    }
-                });
-            });
+        // Generate unique session ID
+        const sessionId = crypto.randomUUID();
 
-            server.listen(0, async () => {
-                const address = server.address();
-                const port = typeof address === 'object' && address?.port;
-                const callbackUrl = `http://localhost:${port}`;
+        // Open browser for auth
+        const authUrl = `https://shitpost-ujla.onrender.com/auth/x?session=${sessionId}`;
+        await open(authUrl);
+        p.log.message(`🌐 Opened browser for authorization...`);
+        p.log.message(`🕒 Waiting for authorization to complete...`);
 
-                const authUrl = `https://shitpost-ujla.onrender.com/auth/x?callback=${encodeURIComponent(callbackUrl)}`;
-                await open(authUrl);
+        // Poll server for auth data
+        const tokenData = await pollForAuth(sessionId);
 
-                p.log.message('🌐 Opened browser for authorization...');
-                console.log(`📡 Waiting for token data on ${callbackUrl}...`);
-            });
-        });
+        const { accessToken, refreshToken, expiresAt, email, twitterId, username, userId } = tokenData;
+        saveTokens({ accessToken, refreshToken, expiresAt, email, userId, twitterId, username });
 
-        const {
-            accessToken,
-            refreshToken,
-            expiresAt,
-            email,
-            twitterId,
-            username,
-            userId
-        } = tokenData as any;
-
-        saveTokens({
-            accessToken,
-            refreshToken,
-            expiresAt,
-            email,
-            userId,
-            twitterId,
-            username
-        });
-
+        p.log.success('✅ Logged in with X (Twitter) successfully!');
     } catch (err) {
         p.log.error('❌ An error occurred during authorization.');
         if (err instanceof Error) p.log.error(err.message);
         process.exit(1);
     }
+}
+
+async function pollForAuth(sessionId: string): Promise<any> {
+    const maxTries = 5 * 60;
+    for (let i = 0; i < maxTries; i++) {
+        const res = await fetch(`https://shitpost-ujla.onrender.com/api/session/${sessionId}`);
+        if (res.status === 200) {
+            return await res.json();
+        }
+        await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+    throw new Error('Timeout waiting for authorization to complete.');
 }

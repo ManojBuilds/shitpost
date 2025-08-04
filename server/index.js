@@ -15,6 +15,8 @@ const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
 let oauthRequestData = null;
+const sessions = {}
+
 
 export const TweetSchema = z.object({
   text: z.string().describe("The tweet content, must be under 280 characters."),
@@ -47,17 +49,16 @@ const client = new TwitterApi({
 });
 
 app.get("/auth/x", async (req, res) => {
-  const { callback } = req.query;
+  const session = req.query.session;
+  if (!session) return res.status(400).send("Missing session");
   console.log("🔁 Starting OAuth flow...");
-  console.log("📥 Callback URL from CLI:", callback);
 
   const { url, codeVerifier, state } = client.generateOAuth2AuthLink(CALLBACK_URL, {
     scope: ["tweet.read", "tweet.write", "users.read", "offline.access", "users.email"]
   });
 
-  oauthRequestData = { codeVerifier, state, callback };
-  console.log("🔐 Generated OAuth2 auth link with state:", state);
-  console.log("🌐 Redirecting user to Twitter OAuth:", url);
+  sessions[session] = { codeVerifier, state };
+  console.log("🔁 OAuth session initialized:", session);
 
   res.redirect(url);
 });
@@ -66,6 +67,12 @@ app.get("/auth/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
     console.log("🔙 Received OAuth callback:", { code, state });
+    const sessionId = Object.keys(sessions).find(s => sessions[s].state === state);
+    if (!sessionId) {
+      return res.status(400).send("Invalid or expired session");
+    }
+
+    const oauthRequestData = sessions[sessionId];
 
     if (!code || !state || !oauthRequestData || state !== oauthRequestData.state) {
       console.error("❌ Invalid OAuth callback state or missing code.");
@@ -117,14 +124,7 @@ app.get("/auth/callback", async (req, res) => {
       username: user.username.toLowerCase(),
       userId: newUser.id
     };
-
-    console.log("📤 Sending token data back to CLI callback:", oauthRequestData.callback);
-    await fetch(oauthRequestData.callback, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
+    sessions[sessionId].tokenData = payload;
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(`
   <html>
@@ -138,6 +138,17 @@ app.get("/auth/callback", async (req, res) => {
   } catch (err) {
     console.error("❌ OAuth error:", err);
     res.status(500).json({ error: "Authentication failed" });
+  }
+});
+
+app.get("/api/session/:id", (req, res) => {
+  const session = sessions[req.params.id];
+  if (session?.tokenData) {
+    const data = session.tokenData;
+    delete sessions[req.params.id];
+    res.json(data);
+  } else {
+    res.status(404).end();
   }
 });
 
