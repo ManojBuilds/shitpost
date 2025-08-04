@@ -45,12 +45,12 @@ export default function Home() {
             View Dashboard
           </Link>
         </div>
-        <div
+        {/* <div
           className="relative flex items-center h-fit -m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 shadow-2xl"
         >
           video
 
-        </div>
+        </div> */}
 
         {/* How It Works */}
         <section className="mt-24 w-full max-w-5xl">

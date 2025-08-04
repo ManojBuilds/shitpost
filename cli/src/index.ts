@@ -8,35 +8,43 @@ import { LOGO } from './constants';
 import { config } from './config';
 
 async function main() {
-    console.clear();
+    try {
+        console.clear();
 
-    p.updateSettings({
-        aliases: {
-            k: 'up',
-            j: 'down',
-            h: 'left',
-            l: 'right',
-        },
-    });
+        p.updateSettings({
+            aliases: {
+                k: 'up',
+                j: 'down',
+                h: 'left',
+                l: 'right',
+            },
+        });
 
-    p.intro(LOGO)
+        p.intro(LOGO)
 
-    p.log.message('✨  Built something cool? Let\'s turn it into a post.');
-    await authorizeWithX();
+        p.log.message('✨  Built something cool? Let\'s turn it into a post.');
+        await authorizeWithX();
 
-    const diff = await getGitDiff();
-    const diffSummary = await generateDiffSummary(diff);
-    const tweets = await generateTweets(diffSummary);
-    await updateInDb(tweets);
+        const diff = await getGitDiff();
+        const diffSummary = await generateDiffSummary(diff);
+        const tweets = await generateTweets(diffSummary);
+        await updateInDb(tweets);
 
-    // Outro
-    p.outro(`
+        // Outro
+        p.outro(`
 🚀  Done! Open your dashboard: ${color.cyan(`https://${config.frontendUrl}/dashboard`)}
 
 💬  Type ${color.bold('shitpost')} again tomorrow to stay consistent.
 `);
+    } catch (err) {
+        p.log.error('An unexpected error occurred. Please try again.');
+        if (err instanceof Error) {
+            p.log.error(err.message);
+        }
+        process.exit(1);
+    }
 }
 
-main().catch(console.error);
+main();
 
 

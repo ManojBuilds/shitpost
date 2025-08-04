@@ -1,82 +1,69 @@
-import { TwitterApi } from 'twitter-api-v2';
+import * as p from '@clack/prompts';
 import open from 'open';
 import http from 'http';
 import { saveTokens, getSavedTokens } from './authStore';
-import { config } from './config';
 
 export async function authorizeWithX() {
-    const saved = getSavedTokens();
-    if (saved) {
-        return new TwitterApi(saved.accessToken);
-    }
+    try {
+        const saved = getSavedTokens();
+        if (saved) return;
 
-    const client = new TwitterApi({
-        clientId: config.twitterClientId,
-        clientSecret: config.twitterClientSecret,
-    });
+        const tokenData = await new Promise((resolve, reject) => {
+            const server = http.createServer(async (req, res) => {
+                let body = '';
+                req.on('data', chunk => (body += chunk));
+                req.on('end', () => {
+                    try {
+                        const data = JSON.parse(body);
+                        res.writeHead(200, { 'Content-Type': 'text/plain' });
+                        res.end('✅ Auth complete. You can close this window.');
+                        server.close();
+                        resolve(data);
+                    } catch (e) {
+                        res.writeHead(400, { 'Content-Type': 'text/plain' });
+                        res.end('❌ Failed to parse token data.');
+                        server.close();
+                        reject(e);
+                    }
+                });
+            });
 
-    const { url, codeVerifier, state } = client.generateOAuth2AuthLink(
-        config.twitterCallbackUrl!,
-        { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access', 'users.email'] }
-    );
+            server.listen(0, async () => {
+                const address = server.address();
+                const port = typeof address === 'object' && address?.port;
+                const callbackUrl = `http://localhost:${port}`;
 
-    console.log(`🔗 Authorize here: ${url}`);
-    await open(url);
+                const authUrl = `http://localhost:5000/auth/x?callback=${encodeURIComponent(callbackUrl)}`;
+                await open(authUrl);
 
-    const code = await new Promise<string>((resolve, reject) => {
-        const server = http.createServer((req, res) => {
-            const urlObj = new URL(req.url || '', `http://${req.headers.host}`);
-            const code = urlObj.searchParams.get('code');
-            const returnedState = urlObj.searchParams.get('state');
-
-            if (!code || returnedState !== state) {
-                res.writeHead(400);
-                res.end('Auth failed. Please close this window.');
-                reject(new Error('Invalid OAuth callback.'));
-                return;
-            }
-
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end('✅ Authorization successful! You can close this window.');
-            server.close();
-            resolve(code);
+                p.log.message('🌐 Opened browser for authorization...');
+                console.log(`📡 Waiting for token data on ${callbackUrl}...`);
+            });
         });
 
-        server.listen(3001, () => {
-            console.log('📡 Waiting for callback...');
-        });
-    });
-
-    const { client: loggedClient, accessToken, refreshToken, expiresIn } =
-        await client.loginWithOAuth2({
-            code,
-            codeVerifier,
-            redirectUri: config.twitterCallbackUrl,
-        });
-
-    const expiresAt = Date.now() + expiresIn * 1000;
-
-    const { data: user } = await loggedClient.v2.me({ "user.fields": ['confirmed_email', 'profile_image_url'] });
-
-    const res = await fetch(`${config.frontendUrl}/api/createUser`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            twitterId: user.id,
-            name: user.name,
-            username: user.username.toLowerCase(),
-            profileImageUrl: user.profile_image_url,
-            email: user.confirmed_email,
-            accessToken: accessToken,
+        const {
+            accessToken,
             refreshToken,
-            expiresAt
-        }),
-    });
-    const newUser = await res.json()
+            expiresAt,
+            email,
+            twitterId,
+            username,
+            userId
+        } = tokenData as any;
 
-    saveTokens({ accessToken, refreshToken: refreshToken!, expiresAt, email: user.confirmed_email!, userId: newUser.id, twitterId: user.id, username: user.username.toLowerCase() });
+        saveTokens({
+            accessToken,
+            refreshToken,
+            expiresAt,
+            email,
+            userId,
+            twitterId,
+            username
+        });
 
-    return loggedClient;
+    } catch (err) {
+        p.log.error('❌ An error occurred during authorization.');
+        if (err instanceof Error) p.log.error(err.message);
+        process.exit(1);
+    }
 }

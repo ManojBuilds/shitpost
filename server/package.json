@@ -1,0 +1,22 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.1"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^2.0.0",
+    "ai": "^5.0.1",
+    "express": "^5.1.0",
+    "twitter-api-v2": "^1.24.0",
+    "zod": "^3.25.76"
+  }
+}
