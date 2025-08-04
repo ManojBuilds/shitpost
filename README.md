@@ -24,7 +24,7 @@
     npx shitpost
     ```
 2.  **Authorize with X:** The CLI will guide you through the process of authorizing your X account.
-3.  **View your dashboard:** After the tweets are generated, you can view them on your dashboard at [https://your-frontend-url.com/dashboard](https://your-frontend-url.com/dashboard).
+3.  **View your dashboard:** After the tweets are generated, you can view them on your dashboard at [https://your-frontend-url.com/dashboard](http://localhost:3000/dashboard).
 
 ## Tech Stack
 
