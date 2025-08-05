@@ -95,8 +95,6 @@ app.get("/auth/callback", async (req, res) => {
       "user.fields": ["confirmed_email", "profile_image_url"]
     });
 
-    console.log("✅ Logged in as Twitter user:", user.username);
-
     const userCreationData = await axios.post(`${FRONTEND_URL}/api/createUser`, {
         twitterId: user.id,
         name: user.name,
@@ -109,7 +107,6 @@ app.get("/auth/callback", async (req, res) => {
     });
 
     const newUser =userCreationData.data;
-    console.log("🆕 User created in frontend DB:", newUser.id);
 
     const payload = {
       accessToken,

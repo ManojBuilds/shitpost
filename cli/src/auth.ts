@@ -8,16 +8,13 @@ export async function authorizeWithX() {
         const saved = getSavedTokens();
         if (saved) return;
 
-        // Generate unique session ID
         const sessionId = crypto.randomUUID();
 
-        // Open browser for auth
         const authUrl = `https://shitpost-ujla.onrender.com/auth/x?session=${sessionId}`;
         await open(authUrl);
         p.log.message(`🌐 Opened browser for authorization...`);
         p.log.message(`🕒 Waiting for authorization to complete...`);
 
-        // Poll server for auth data
         const tokenData = await pollForAuth(sessionId);
 
         const { accessToken, refreshToken, expiresAt, email, twitterId, username, userId } = tokenData;

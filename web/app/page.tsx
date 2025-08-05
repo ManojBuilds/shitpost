@@ -14,39 +14,48 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import MuxPlayer from "@mux/mux-player-react";
+import { SignedIn, SignedOut, SignUpButton, useAuth } from "@clerk/nextjs";
 
 export default function Home() {
+  const { isSignedIn } = useAuth()
   return (
     <div className="flex flex-col items-center min-h-screen py-16 w-full h-full">
 
-        <div className="flex flex-col items-center px-4 sm:px-10 text-center w-full h-full ">
-          {/* Hero Section */}
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
-            <span className="text-blue-600">Build in Public </span><br />Without the Burnout
-          </h1>
-          <p className="mt-4 text-lg sm:text-2xl text-muted-foreground max-w-2xl">
-            Tweet consistently about what you&apos;re building without spending hours writing threads manually.
-          </p>
+      <div className="flex flex-col items-center px-4 sm:px-10 text-center w-full h-full ">
+        {/* Hero Section */}
+        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
+          <span className="text-blue-600">Build in Public </span><br />Without the Burnout
+        </h1>
+        <p className="mt-4 text-lg sm:text-2xl text-muted-foreground max-w-2xl">
+          Tweet consistently about what you&apos;re building without spending hours writing threads manually.
+        </p>
 
-          {/* CTA Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <Button
-              variant={'outline'}
-              onClick={async () => {
-                await navigator.clipboard.writeText('npx shitpost');
-                toast.info("Copied to clipboard");
-              }}
-            >
-              <Terminal className="mr-2 h-4 w-4" />
-              npx shitpost
-            </Button>
+        {/* CTA Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+          <Button
+            variant={'outline'}
+            onClick={async () => {
+              await navigator.clipboard.writeText('npx shitpost');
+              toast.info("Copied to clipboard");
+            }}
+          >
+            <Terminal className="mr-2 h-4 w-4" />
+            npx shitpost
+          </Button>
+          <SignedIn>
             <Link
               href="/dashboard"
               className={cn(buttonVariants({ size: "lg" }))}
             >
               View Dashboard
             </Link>
-          </div>
+          </SignedIn>
+          <SignedOut>
+            <SignUpButton mode="modal" forceRedirectUrl={'/auth/callback'}>
+              <Button>Get Started</Button>
+            </SignUpButton>
+          </SignedOut>
+        </div>
 
         <div className="max-w-5xl mx-auto mt-12 w-full h-full">
           <div
