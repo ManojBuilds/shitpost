@@ -12,7 +12,7 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "bin": {
-    "shitpost": "./dist/index.js"
+    "shitpost": "dist/index.js"
   },
   "files": [
     "dist"
