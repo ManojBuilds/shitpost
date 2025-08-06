@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { MediaValidator } from "./mimeTypes";
 
 // The schema is entirely optional.
 // You can delete this file (schema.ts) and the
@@ -26,7 +27,9 @@ export default defineSchema({
     content: v.string(),
     tags: v.array(v.string()),
     scheduledAt: v.string(),
-    status: v.string()
+    status: v.string(),
+    medias: v.array(MediaValidator),
+    community: v.optional(v.string())
   }).index('by_username', ['username'])
     .index('by_username_and_status', ['username', 'status'])
     .searchIndex('by_content', {

@@ -9,8 +9,12 @@ const nextConfig: NextConfig = {
         hostname: 'img.clerk.com'
       }, 
       {
-        hostname: '"abs.twimg.com"',
+        hostname: 'abs.twimg.com',
         protocol: 'https',
+      },
+      {
+        hostname: "hidden-cow-597.convex.cloud" ,
+        protocol: 'https'
       }
     ]
   }

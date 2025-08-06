@@ -1,14 +1,14 @@
 import { getStatusBadgeProps, timeAgo } from '@/lib/utils';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { ClockIcon, PenIcon, SendIcon, TrashIcon } from 'lucide-react';
+import { ClockIcon, PenIcon, SendIcon, SparklesIcon, TrashIcon } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from './ui/badge';
 import { Tweet, TweetStatus } from '@/types';
-import { useMutation } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
-import { tweetPost } from '@/app/action';
+import { getAccessToken, tweetPost } from '@/app/action';
 import CreateTweet from './CreateTweet';
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -18,6 +18,7 @@ import { useUser } from '@clerk/clerk-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Skeleton } from './ui/skeleton';
 import EnhanceTweet from './EnhanceTweet';
+import useAi from '@/hooks/useAi';
 
 
 export default function TweetCard({ tweet }: { tweet: Tweet }) {
@@ -27,6 +28,7 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
 
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(
     tweet?.scheduledAt ? new Date(tweet.scheduledAt) : undefined
@@ -34,11 +36,15 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
 
   const deleteTweet = useMutation(api.tweets.deleteTweet);
   const scheduleTweet = useMutation(api.tweets.scheduleTweet);
+  const postTweet = useAction(api.twitter.postTweet)
+  const updateTweet = useMutation(api.tweets.updateTweet);
+  const ai = useAi()
 
   const handleTweetPost = async () => {
     setIsPosting(true);
     try {
-      await tweetPost({ content: tweet.content, id: tweet._id });
+      const token = await getAccessToken()
+      await postTweet({ content: tweet.content, id: tweet._id, accessToken: token!, medias: tweet.medias, community: tweet.community });
       toast.success('Tweet has been published');
     } catch (error: any) {
       toast.error(error?.message || 'Failed to post');
@@ -85,9 +91,20 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
     setScheduledAt(newDate);
   };
 
+  const handleEnhance = async () => {
+    const enhancedContent = await ai.handleEnhance(`Please enhance this tweet for virality for buildinpublic: ${tweet.content}`);
+    if (enhancedContent) {
+      await updateTweet({
+        tweetId: tweet._id,
+        content: enhancedContent,
+        status: tweet.status
+      });
+    } else {
+      throw new Error("Failed to enhance tweet");
+    }
+  }
   return (
     <Card className="hover:shadow-xl transition-shadow duration-200 group">
-      {/* Header */}
       <CardHeader className="flex gap-3 items-start relative pb-0">
         <CardTitle className="sr-only">Tweet</CardTitle>
         <Image
@@ -102,7 +119,7 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <span>@{tweet.username}</span>
             <span>·</span>
-            <span>{timeAgo(new Date(tweet._creationTime.toString()))}</span>
+            <span>{timeAgo(new Date(tweet._creationTime))}</span>
           </div>
         </div>
         <Badge variant={variant} className="absolute top-2 right-3 capitalize z-10">
@@ -110,9 +127,27 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
         </Badge>
       </CardHeader>
 
-      {/* Content */}
       <CardContent className="pt-1 pb-2 text-sm leading-relaxed whitespace-pre-wrap">
-        {tweet.content}
+        {ai.isPending ? <div className='space-y-1'>
+          <Skeleton className="w-full h-6" />
+          <Skeleton className="w-3/4 h-6" />
+          <Skeleton className="w-1/2 h-6" />
+        </div> : tweet.content}
+        {tweet.mediaUrls && tweet.mediaUrls.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {tweet.mediaUrls.map((media, index) => (
+              media?.url && (
+                <div key={index} className='h-44 aspect-video'>
+                  {media.mimeType.startsWith("image/") ? (
+                    <img src={media.url} alt="tweet media" width={200} height={200} className="rounded-lg object-cover w-full h-full" />
+                  ) : (
+                    <video src={media.url} controls className="rounded-lg object-cover w-full h-full" />
+                  )}
+                </div>
+              )
+            ))}
+          </div>
+        )}
       </CardContent>
 
       {/* Actions */}
@@ -145,7 +180,6 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
                 mode="single"
                 selected={scheduledAt}
                 onSelect={setScheduledAt}
-                initialFocus
               />
               <div className="flex gap-2 mt-2">
                 <Select onValueChange={(v) => handleTimeChange('hour', v)} defaultValue={scheduledAt?.getHours().toString()}>
@@ -183,7 +217,9 @@ export default function TweetCard({ tweet }: { tweet: Tweet }) {
               <PenIcon className="w-4 h-4" />
             </Button>
           </CreateTweet>
-          <EnhanceTweet tweet={tweet} />
+          <Button size="icon" variant="ghost" aria-label="Enhance tweet" onClick={handleEnhance} disabled={ai.isPending}>
+            <SparklesIcon className="w-4 h-4 text-blue-500" />
+          </Button>
           <Button
             size="icon"
             variant="destructive"

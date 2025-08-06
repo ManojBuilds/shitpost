@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import { paginationOptsValidator } from "convex/server";
+import { MediaValidator } from "./mimeTypes";
 
 export const createTweet = mutation({
     args: {
@@ -9,6 +11,8 @@ export const createTweet = mutation({
         tags: v.array(v.string()),
         scheduledAt: v.string(),
         status: v.string(),
+        medias: v.optional(v.array(MediaValidator)),
+        community: v.optional(v.string())
     },
     async handler(ctx, args) {
         const newTweet = await ctx.db.insert('tweets', {
@@ -17,12 +21,13 @@ export const createTweet = mutation({
             status: args.status,
             tags: args.tags,
             username: args.username,
+            medias: args.medias || [],
+            community: args.community,
         })
         return newTweet;
     },
 })
 
-import { paginationOptsValidator } from "convex/server";
 
 export const getTweets = query({
     args: {
@@ -48,20 +53,30 @@ export const getTweets = query({
                     return sq;
                 });
         } else if (status && status !== 'all') {
-            const order = sort === 'asc' ? 'asc' : 'desc';
+            const order = sort === 'asc' ? 'desc' : 'desc';
             query = ctx.db
                 .query('tweets')
                 .withIndex('by_username_and_status', (q) => q.eq('username', username).eq('status', status))
                 .order(order);
         } else {
-            const order = sort === 'asc' ? 'asc' : 'desc';
+            const order = sort === 'asc' ? 'desc' : 'desc';
             query = ctx.db
                 .query('tweets')
                 .withIndex('by_username', (q) => q.eq('username', username))
                 .order(order);
         }
 
-        return await query.paginate(paginationOpts);
+        const { page, isDone, continueCursor } = await query.paginate(paginationOpts);
+
+        const tweetsWithMedias = await Promise.all(page.map(async (tweet) => {
+            const mediaUrls = await Promise.all(tweet.medias.map(async (media) => {
+                const url = await ctx.storage.getUrl(media.storageId)
+                return ({url, mimeType: media.mimeType})
+            }));
+            return { ...tweet, mediaUrls };
+        }));
+
+        return { page: tweetsWithMedias, isDone, continueCursor };
     },
 });
 
@@ -88,34 +103,53 @@ export const getTweetCounts = query({
 });
 
 export const updateTweet = mutation({
-    args: {
-        tweetId: v.id('tweets'),
-        content: v.optional(v.string()),
-        scheduledAt: v.optional(v.string()),
-        status: v.optional(v.string()),
-    },
-    async handler(ctx, args) {
-        const { tweetId, status, ...rest } = args;
-        const tweet = await ctx.db.get(tweetId);
+  args: {
+    tweetId: v.id('tweets'),
+    content: v.optional(v.string()),
+    scheduledAt: v.optional(v.string()),
+    status: v.optional(v.string()),
+    medias: v.optional(v.array(MediaValidator)),
+    community: v.optional(v.string())
+  },
+  async handler(ctx, args) {
+    const { tweetId, ...fields } = args;
 
-        if (!tweet) {
-            throw new Error("Tweet not found");
-        }
+    const tweet = await ctx.db.get(tweetId);
+    if (!tweet) {
+      throw new Error("Tweet not found");
+    }
 
-        const updatedTweet = await ctx.db.patch(tweetId, { ...rest, status });
-        const user = await ctx.db.query('users').withIndex('by_username', (q) => q.eq('username', tweet.username)).unique()
+    // Filter out undefined fields to only update what's provided
+    const updates: Record<string, any> = {};
+    for (const key in fields) {
+    // @ts-expect-error it will owrk
+      if (fields[key] !== undefined) {
+        // @ts-expect-error good
+        updates[key] = fields[key];
+      }
+    }
 
-        if (status === 'published') {
-            await ctx.scheduler.runAfter(0, internal.tweets.scheduledPost, {
-                content: tweet.content,
-                id: tweet._id,
-                accessToken: user?.accessToken as string
-            });
-        }
+    const updatedTweet = await ctx.db.patch(tweetId, updates);
 
-        return updatedTweet;
-    },
+    // Run scheduledPost if status is being changed to 'published'
+    if (updates.status === 'published') {
+      const user = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', tweet.username))
+        .unique();
+
+      await ctx.scheduler.runAfter(0, internal.tweets.scheduledPost, {
+        content: tweet.content,
+        id: tweet._id,
+        accessToken: user?.accessToken as string,
+        medias: tweet.medias,
+      });
+    }
+
+    return updatedTweet;
+  },
 });
+
 
 export const deleteTweet = mutation({
     args: {
@@ -148,7 +182,8 @@ export const scheduleTweet = mutation({
         await ctx.scheduler.runAt(new Date(args.scheduledAt), internal.tweets.scheduledPost, {
             content: tweet.content,
             id: tweet._id,
-            accessToken: user?.accessToken as string
+            accessToken: user?.accessToken as string,
+            medias: tweet.medias
         });
     },
 });
@@ -167,7 +202,9 @@ export const scheduledPost = internalAction({
     args: {
         content: v.string(),
         id: v.id('tweets'),
-        accessToken: v.string()
+        accessToken: v.string(),
+        medias: v.array(MediaValidator),
+        community: v.optional(v.string())
     },
     handler: async (ctx, args) => {
         try {

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button, buttonVariants } from "./ui/button";
 import { Logo } from "./Logo";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignUpButton, UserButton } from "@clerk/nextjs";
 import CreateTweet from "./CreateTweet";
 import { PlusIcon } from "lucide-react";
 import { neobrutalism } from "@clerk/themes"
@@ -16,8 +16,13 @@ export default function Header() {
                     <span>shitpost</span>
                 </Link>
                 <nav className="flex items-center gap-2">
-                    <Link href={'https://github.com/ManojBuilds/shitpost'} className={buttonVariants({variant: 'secondary'})}>
-                        Start on Github ❤️
+                    <Link target="_blank"
+                        rel="noopener noreferrer"
+                        href={'https://github.com/ManojBuilds/shitpost'} className={buttonVariants({ variant: 'secondary' })}>
+                        <span className="hidden sm:inline-flex">
+                            Star on Github
+                        </span>
+                        ❤️
                     </Link>
                     <SignedOut>
                         <SignUpButton mode="modal" forceRedirectUrl={'/auth/callback'}>

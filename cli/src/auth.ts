@@ -10,7 +10,7 @@ export async function authorizeWithX() {
 
         const sessionId = crypto.randomUUID();
 
-        const authUrl = `https://shitpost-ujla.onrender.com/auth/x?session=${sessionId}`;
+        const authUrl = `https://cli-shitpost.heysheet.in/auth/x?session=${sessionId}`;
         await open(authUrl);
         p.log.message(`🌐 Opened browser for authorization...`);
         p.log.message(`🕒 Waiting for authorization to complete...`);
@@ -31,7 +31,7 @@ export async function authorizeWithX() {
 async function pollForAuth(sessionId: string): Promise<any> {
     const maxTries = 5 * 60;
     for (let i = 0; i < maxTries; i++) {
-        const res = await fetch(`https://shitpost-ujla.onrender.com/api/session/${sessionId}`);
+        const res = await fetch(`https://cli-shitpost.heysheet.in/api/session/${sessionId}`);
         if (res.status === 200) {
             return await res.json();
         }

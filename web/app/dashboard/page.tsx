@@ -3,6 +3,12 @@ import TweetFilters from "@/components/TweetFilters";
 import TweetList from "@/components/TweetList";
 import TweetToolbar from "@/components/TweetToolbar";
 import { Separator } from "@/components/ui/separator";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Dashboard - Shitpost",
+    description: "Manage your tweets and build in public with ease.",
+};
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ status?: string, search?: string, sort?: string }> }) {
     const { status, search, sort } = await searchParams;

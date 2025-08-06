@@ -13,6 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as files from "../files.js";
+import type * as mimeTypes from "../mimeTypes.js";
 import type * as tweets from "../tweets.js";
 import type * as twitter from "../twitter.js";
 import type * as users from "../users.js";
@@ -26,6 +28,8 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  files: typeof files;
+  mimeTypes: typeof mimeTypes;
   tweets: typeof tweets;
   twitter: typeof twitter;
   users: typeof users;

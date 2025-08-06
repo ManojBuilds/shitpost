@@ -49,7 +49,7 @@ export const ai = async ({ prompt }: { prompt: string }) => {
     try {
         const { text } = await generateText({
             model: google("models/gemini-2.0-flash-exp"),
-            prompt,
+            prompt: `tweet: ${prompt}`,
             system: `You are a helpful assistant that improves tweets for a developer-focused audience.
 Given a draft tweet, enhance it while keeping the original intent, tone, and authenticity intact.
 You may make it more concise, engaging, or witty.

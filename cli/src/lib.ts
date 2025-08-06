@@ -10,11 +10,16 @@ export async function getGitDiff(): Promise<string> {
     const git = simpleGit({ baseDir: process.cwd() });
 
     const s = p.spinner();
-    s.start(`🧐  ${color.cyan("Inspecting your latest masterpiece...")}`);
+    s.start(`🧐  ${color.cyan("Initiating git-fu... preparing for code archaeology!")}`);
 
     try {
+        s.message("Checking git status...");
         const status = await git.status();
+
+        s.message("Getting staged changes...");
         const stagedDiff = await git.diff(['--cached']);
+
+        s.message("Getting unstaged changes...");
         const unstagedDiff = await git.diff();
 
         const changedFiles = status.files.length
@@ -22,11 +27,11 @@ export async function getGitDiff(): Promise<string> {
             : 'No file changes detected';
 
         const summary = `📦 Git Status:\n${changedFiles}\n\n🧾 Staged Diff:\n${stagedDiff || 'No staged changes'}\n\n🧾 Unstaged Diff:\n${unstagedDiff || 'No unstaged changes'}`;
-        s.stop(`✅  ${color.green("Found your latest commits. Let's see what we've got.")}`);
+        s.stop(`✅  ${color.green("Git analysis complete. Your code's secrets are now ours!")}`);
         return summary;
     } catch (err) {
         s.stop("❌  Git error");
-        p.log.error('An error occurred while getting the git diff. Are you in a git repository?');
+        p.log.error("Git-ception failed! Are you sure you're in a git repository, Neo?");
         if (err instanceof Error) {
             p.log.error(err.message);
         }
@@ -36,21 +41,21 @@ export async function getGitDiff(): Promise<string> {
 
 export async function generateDiffSummary(gitDiff: string): Promise<string> {
     const s = p.spinner();
-    s.start(`🤖  ${color.cyan("Asking our AI overlords to make sense of your code...")}`);
+    s.start(`🤖  ${color.cyan("Consulting the digital oracle for diff insights...")}`);
     try {
-        const res = await axios.post('https://shitpost-ujla.onrender.com/api/diffSummary', {
+        const res = await axios.post('https://cli-shitpost.heysheet.in/api/diffSummary', {
             gitDiff,
         }, {
             headers: {
                 'Content-Type': 'application/json'
             }
         })
-        s.stop(`✅  ${color.green("Your code, but readable. You're welcome.")}`);
+        s.stop(`✅  ${color.green("Diff summarized by AI. Resistance is futile, your code is understood!")}`);
         return res.data.text;
     } catch (err) {
         console.error(err)
         s.stop("❌  AI error");
-        p.log.error('An error occurred while generating the diff summary.');
+        p.log.error("AI's brain short-circuited while summarizing the diff. Try again, human!");
         if (err instanceof Error) {
             p.log.error(err.message);
         }
@@ -60,10 +65,10 @@ export async function generateDiffSummary(gitDiff: string): Promise<string> {
 
 export async function generateTweets(diffSummary: string) {
     const s = p.spinner();
-    s.start(`🐦  ${color.cyan("Turning your code into clout...")}`);
+    s.start(`🐦  ${color.cyan("Engaging tweet-bot protocol... preparing for social media domination!")}`);
 
     try {
-        const res = await axios.post('https://shitpost-ujla.onrender.com/api/generateTweets', {
+        const res = await axios.post('https://cli-shitpost.heysheet.in/api/generateTweets', {
             diffSummary,
         }, {
             headers: {
@@ -71,12 +76,12 @@ export async function generateTweets(diffSummary: string) {
             }
         })
 
-        s.stop(`✅  ${color.green("Here are some spicy takes, fresh from the AI kitchen.")}`);
+        s.stop(`✅  ${color.green("Tweets generated! Prepare for maximum social impact!")}`);
         return res.data;
     } catch (err) {
         console.error(err)
         s.stop("❌  AI error");
-        p.log.error('An error occurred while generating tweets.');
+        p.log.error("The tweet-generating AI encountered a critical error. It's not you, it's the robots!");
         if (err instanceof Error) {
             p.log.error(err.message);
         }
@@ -89,11 +94,11 @@ export async function updateInDb(tweets: Tweets) {
         const tokenData = getSavedTokens();
 
         if (tweets.length === 0) {
-            p.log.info('No tweets were generated.');
+            p.log.info('No tweets were generated. The AI is clearly slacking off.');
             return;
         }
 
-        p.intro(`Here are your generated tweets:`);
+        p.intro(`Behold, mortal! Your code has been transmuted into tweet-gold:`);
         tweets.forEach((tweet, i) => {
             p.log.message(`${color.bold(i + 1)}: ${tweet.text}`);
             if (tweet.tags && tweet.tags.length > 0) {
@@ -102,7 +107,7 @@ export async function updateInDb(tweets: Tweets) {
         });
 
         const action = await p.select({
-            message: 'What do you want to do with these tweets?',
+            message: "Your tweets await their destiny! What's the next command, commander?",
             options: [
                 { value: 'all', label: 'Save all to database' },
                 { value: 'select', label: 'Select which tweets to save' },
@@ -112,7 +117,7 @@ export async function updateInDb(tweets: Tweets) {
         });
 
         if (p.isCancel(action) || action === 'discard') {
-            p.outro(color.yellow('No tweets were saved.'));
+            p.outro(color.yellow('Tweets aborted! The digital ether remains undisturbed.'));
             return;
         }
 
@@ -120,7 +125,7 @@ export async function updateInDb(tweets: Tweets) {
 
         if (action === 'select') {
             const selectedTweets = await p.multiselect({
-                message: 'Select the tweets you want to keep (press space to select, enter to confirm):',
+                message: 'Choose your champions! Which tweets shall grace the timelines?',
                 options: tweets.map((tweet) => ({
                     value: tweet,
                     label: tweet.text,
@@ -139,12 +144,12 @@ export async function updateInDb(tweets: Tweets) {
         }
 
         if (tweetsToSave.length === 0) {
-            p.outro(color.yellow('No tweets selected. Nothing saved.'));
+            p.outro(color.yellow('No tweets selected. The void remains silent.'));
             return;
         }
 
         const s = p.spinner();
-        s.start(`🚀  ${color.cyan(`Saving ${tweetsToSave.length} tweet(s) to the cloud...`)}`);
+        s.start(`🚀  ${color.cyan(`Transmitting ${tweetsToSave.length} tweet(s) to the digital cosmos...`)}`);
 
         const tweetPromises = tweetsToSave.map((tweet) => {
             return fetch(`https://shitpost.heysheet.in/api/createTweet`, {
@@ -161,9 +166,9 @@ export async function updateInDb(tweets: Tweets) {
 
         await Promise.all(tweetPromises);
 
-        s.stop(`✅  ${color.green("Your tweets are safe and sound in the database.")}`);
+        s.stop(`✅  ${color.green("Your tweets have been securely uploaded to the mainframe!")}`);
     } catch (err) {
-        p.log.error('An error occurred while updating the database. Please check your internet connection and try again.');
+        p.log.error('Database connection lost! Did you try turning it off and on again?');
         if (err instanceof Error) {
             p.log.error(err.message);
         }

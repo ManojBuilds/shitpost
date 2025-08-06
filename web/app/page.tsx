@@ -10,6 +10,7 @@ import {
   Lightbulb,
   Sparkles,
   Send,
+  ArrowRightIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -45,9 +46,10 @@ export default function Home() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className={cn(buttonVariants({ size: "lg" }))}
+              className={cn(buttonVariants({ size: "lg", className: "flex items-center gap-2" }))}
             >
-              View Dashboard
+             Dashboard
+             <ArrowRightIcon/>
             </Link>
           </SignedIn>
           <SignedOut>
@@ -73,7 +75,7 @@ export default function Home() {
         </div>
 
         {/* How It Works */}
-        <section className="mt-24 w-full max-w-5xl">
+        {/* <section className="mt-24 w-full max-w-5xl">
           <h2 className="text-3xl sm:text-4xl font-bold mb-8">How It Works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
@@ -105,7 +107,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* Features Section */}
         <section className="mt-24 w-full max-w-5xl">
