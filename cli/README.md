@@ -11,7 +11,7 @@ This CLI tool analyzes your latest git changes and helps you craft a social medi
 ## Installation
 
 ```bash
-npm install -g shitpost
+npm install -g @iamsidar07/shitpost
 ```
 
 ## Usage
