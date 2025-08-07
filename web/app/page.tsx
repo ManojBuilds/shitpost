@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,54 +18,60 @@ import MuxPlayer from "@mux/mux-player-react";
 import { SignedIn, SignedOut, SignUpButton, useAuth } from "@clerk/nextjs";
 
 export default function Home() {
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useAuth();
   return (
     <div className="flex flex-col items-center min-h-screen py-16 w-full h-full">
-
       <div className="flex flex-col items-center px-4 sm:px-10 text-center w-full h-full ">
         {/* Hero Section */}
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
-          <span className="text-blue-600">Build in Public </span><br />Without the Burnout
+          <span className="text-blue-600">Build in Public </span>
+          <br />
+          Without the Burnout
         </h1>
         <p className="mt-4 text-lg sm:text-2xl text-muted-foreground max-w-2xl">
-          Tweet consistently about what you&apos;re building without spending hours writing threads manually.
+          Tweet consistently about what you&apos;re building without spending
+          hours writing threads manually.
         </p>
 
         {/* CTA Buttons */}
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <Button
-            variant={'outline'}
+            variant={"outline"}
             onClick={async () => {
-              await navigator.clipboard.writeText('npx shitpost');
+              await navigator.clipboard.writeText("npx shitpost");
               toast.info("Copied to clipboard");
             }}
+            className="font-mono"
           >
             <Terminal className="mr-2 h-4 w-4" />
-            npx shitpost
+            npm i -g @iamsidar07/shitpost
           </Button>
           <SignedIn>
             <Link
               href="/dashboard"
-              className={cn(buttonVariants({ size: "lg", className: "flex items-center gap-2" }))}
+              className={cn(
+                buttonVariants({
+                  size: "lg",
+                  className: "flex items-center gap-2",
+                }),
+              )}
             >
-             Dashboard
-             <ArrowRightIcon/>
+              Dashboard
+              <ArrowRightIcon />
             </Link>
           </SignedIn>
           <SignedOut>
-            <SignUpButton mode="modal" forceRedirectUrl={'/auth/callback'}>
+            <SignUpButton mode="modal" forceRedirectUrl={"/auth/callback"}>
               <Button>Get Started</Button>
             </SignUpButton>
           </SignedOut>
         </div>
 
         <div className="max-w-5xl mx-auto mt-12 w-full h-full">
-          <div
-            className="relative flex items-center h-fit -m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 shadow-2xl"
-          >
+          <div className="relative flex items-center h-fit -m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 shadow-2xl">
             <MuxPlayer
               streamType="on-demand"
-              playbackId="lVD901dOj4Jeit58Vnx4jGSQUD5SkCEmue00NEFXT3o02A"
+              playbackId="8ipN15Yag9tTZXxnT02hAppmH02Z4oX4XtHl8QgDs38B8"
               metadata={{
                 video_title: "Demo of I'm using shitpost",
               }}
@@ -123,7 +129,8 @@ export default function Home() {
         {/* Testimonial */}
         <section className="mt-24 w-full max-w-xl text-center">
           <blockquote className="text-xl italic text-muted-foreground">
-            &ldquo;Finally, tweeting about my work doesn’t feel like work.&rdquo;
+            &ldquo;Finally, tweeting about my work doesn’t feel like
+            work.&rdquo;
           </blockquote>
           <p className="mt-2 text-lg font-semibold text-gray-800">— @devoy</p>
         </section>
@@ -146,7 +153,6 @@ export default function Home() {
         </p>
       </footer>
     </div>
-
   );
 }
 

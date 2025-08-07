@@ -151,9 +151,12 @@ export async function updateInDb(tweets: Tweets) {
         const s = p.spinner();
         s.start(`🚀  ${color.cyan(`Transmitting ${tweetsToSave.length} tweet(s) to the digital cosmos...`)}`);
 
-        const tweetPromises = tweetsToSave.map((tweet) => {
-            return fetch(`https://shitpost.heysheet.in/api/createTweet`, {
+        for (const tweet of tweetsToSave) {
+            await fetch(`https://shitpost.heysheet.in/api/createTweet`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     username: tokenData?.username.toLowerCase(),
                     content: tweet.text,
@@ -162,12 +165,11 @@ export async function updateInDb(tweets: Tweets) {
                     scheduledAt: new Date().toString(),
                 }),
             });
-        });
-
-        await Promise.all(tweetPromises);
+        }
 
         s.stop(`✅  ${color.green("Your tweets have been securely uploaded to the mainframe!")}`);
     } catch (err) {
+        console.error(err)
         p.log.error('Database connection lost! Did you try turning it off and on again?');
         if (err instanceof Error) {
             p.log.error(err.message);

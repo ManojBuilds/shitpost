@@ -48,7 +48,7 @@ export default function TweetList({ status, search, sort }: { status?: string, s
                     <h3 className="text-center">To get started please run <br /> <pre className={buttonVariants({ variant: 'outline', className: "w-fit cursor-pointer mx-auto" })} onClick={() => {
                         navigator.clipboard.writeText('npx shitpost');
                         toast.info('Copied to cipboard')
-                    }}><code>nxp shitpost</code></pre> <br/> in any one of your git repo with any changes</h3>
+                    }}><code>npm i -g @iamsidar07/shitpost</code></pre> <br/> in any one of your git repo with any changes</h3>
                 </div>
             </div> : results.map((tweet, i) => (
                 <div key={tweet._id} ref={i === results.length - 1 ? ref : undefined}>
